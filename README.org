@@ -1,3 +1,12 @@
 * BEGAN Deep learning course
 
  implementation of the paper: [[https://arxiv.org/pdf/1703.10717.pdf][BEGAN]]
+
+ First generate the data by downloading the CelebA in the data folder
+ and then running the face_detect script
+
+ then run the main script to train the network
+ potentially use wandb for sweeps
+
+ finally use the generate script to generate image of the training
+ process

@@ -1,0 +1,68 @@
+command:
+  - ${env}
+  - ${interpreter}
+  - -m
+  - began.main
+  - ${args}
+method: grid
+metric:
+  goal: minimize
+  name: measure
+parameters:
+  batch_size:
+    values:
+      - 64
+  beta1:
+    values:
+      - 0.5
+  data_path:
+    distribution: categorical
+    values:
+      - data/32_32_crop/
+  device:
+    distribution: categorical
+    values:
+      - cpu
+  gamma:
+    values:
+      - 0.5
+  img_size:
+    values:
+      - 32
+  lambda_k:
+    values:
+      - 0.001
+  lr:
+    values:
+      - 0.0001
+      - 0.0005
+  lr_gamma:
+    values:
+      - 0.5
+      - 0.95
+  lr_step:
+    values:
+      - 1000
+      - 2500
+      - 5000
+  manual_seed:
+    values:
+      - 42
+  max_iter:
+    values:
+      - 15000
+  n_filters:
+    values:
+      - 32
+      - 64
+  save_step:
+    values:
+      - 5000
+  skip:
+    distribution: categorical
+    values:
+      - "false"
+      - "true"
+  workers_dl:
+    values:
+      - 2

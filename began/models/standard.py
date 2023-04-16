@@ -18,7 +18,7 @@ class Encoder(nn.Module):
         self.embedding = nn.Linear(8 * 8 * 3 * n_filters, hidden_size)
         self.layers = nn.Sequential(
             nn.Conv2d(input_ch, n_filters, kernel_size=3, stride=1, padding=1),
-            nn.ELU(True),
+            nn.ELU(inplace=True),
             conv_block_downsampling(n_filters, 2 * n_filters),
             conv_block_downsampling(2 * n_filters, 3 * n_filters),
             conv_block(3 * n_filters, 3 * n_filters),

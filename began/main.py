@@ -19,29 +19,29 @@ def main():
         # set the wandb project where this run will be logged
         project="began",
         # track hyperparameters and run metadata
-        # config=dict(
-        #     # settings
-        #     device="cpu",  #
-        #     manual_seed=84,  #
-        #     save_step=10000,  #
-        #     # data
-        #     data_path="data/32_32_crop/",  #
-        #     img_size=32,  #
-        #     workers_dl=2,  #
-        #     batch_size=64,  #
-        #     # optimizers
-        #     lr=0.0001,  #
-        #     beta1=0.5,  #
-        #     lr_step=1000,  #
-        #     lr_gamma=0.5,  #
-        #     # network
-        #     gamma=0.5,  #
-        #     lambda_k=0.001,  #
-        #     skip=True,  #
-        #     n_filters=32,
-        #     # training
-        #     max_iter=100,  #
-        # ),
+        config=dict(
+            # settings
+            device="cpu",  #
+            manual_seed=84,  #
+            save_step=2000,  #
+            # data
+            data_path="data/32_32_crop/",  #
+            img_size=32,  #
+            workers_dl=10,  #
+            batch_size=64,  #
+            # optimizers
+            lr=0.0001,  #
+            beta1=0.5,  #
+            lr_step=5000,  #
+            lr_gamma=0.95,  #
+            # network
+            gamma=0.5,  #
+            lambda_k=0.001,  #
+            skip=True,  #
+            n_filters=64,
+            # training
+            max_iter=20000,  #
+        ),
     )
     conf = wandb.config
     print(conf)
@@ -72,6 +72,9 @@ def main():
         if conf["skip"] == "false"
         else SkipDecoder(n_filters=conf["n_filters"])
     )
+
+    netD = torch.jit.script(netD)
+    netG = torch.jit.script(netG)
 
     print(netD)
 

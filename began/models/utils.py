@@ -6,7 +6,7 @@ def conv_block(
     in_channels: int,
     out_channels: int,
     closing_ops: Callable[[], List[nn.Module]] = lambda in_ch, out_ch: [],
-    act_fun: Callable[[], nn.Module] = lambda: nn.ELU(True),
+    act_fun: Callable[[], nn.Module] = lambda: nn.ELU(inplace=True),
     out_chs_firstconv: Optional[int] = None,
     out_chs_secondconv: Optional[int] = None,
     in_chs_firstconv: Optional[int] = None,
@@ -43,7 +43,7 @@ def conv_block(
 def conv_block_downsampling(
     in_channels: int,
     out_channels: int,
-    act_fun: Callable[[], nn.Module] = lambda: nn.ELU(True),
+    act_fun: Callable[[], nn.Module] = lambda: nn.ELU(inplace=True),
     out_chs_firstconv: Optional[int] = None,
     out_chs_secondconv: Optional[int] = None,
     in_chs_secondconv: Optional[int] = None,
@@ -67,7 +67,7 @@ def conv_block_downsampling(
 def conv_block_upsampling(
     in_channels: int,
     out_channels: int,
-    act_fun: Callable[[], nn.Module] = lambda: nn.ELU(True),
+    act_fun: Callable[[], nn.Module] = lambda: nn.ELU(inplace=True),
     out_chs_firstconv: Optional[int] = None,
     out_chs_secondconv: Optional[int] = None,
     in_chs_secondconv: Optional[int] = None,
