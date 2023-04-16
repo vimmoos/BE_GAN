@@ -2,54 +2,52 @@ from tqdm import trange
 import torch
 from typing import Callable
 import numpy as np
-
-
-def adjust_learning_rate(optimizer, lr, lr_decay_iter, niter):
-    lr = lr * (0.95 ** (niter // lr_decay_iter))
-    for param_group in optimizer.param_groups:
-        param_group["lr"] = lr
-    return optimizer
+import os
 
 
 def train(
-    max_iter: int,
     dataloader: torch.utils.data.DataLoader,
     netD: torch.nn.Module,
     optimizerD: torch.optim,
     optimizerG: torch.optim,
     netG: torch.nn.Module,
+    criterion: Callable,
+    logger: Callable,
+    max_iter: int,
     batch_size: int,
     device: str,
-    criterion: Callable,
     gamma: float,
     lambda_k: float,
-    logger: Callable,
-    init_lr: float,
-    lr_decay_iter: float,
+    lr_step: int,
+    lr_gamma: float,
     save_step: int,
     outfolder: str = "models",
 ):
     k_t = 0
     loader = iter(dataloader)
+    netD.train()
+    netG.train()
+    schedG = torch.optim.lr_scheduler.StepLR(optimizerG, lr_step, lr_gamma)
+    schedD = torch.optim.lr_scheduler.StepLR(optimizerD, lr_step, lr_gamma)
+
+    if not os.path.exists(outfolder):
+        os.makedirs(outfolder)
     for step in trange(0, max_iter):
         try:
-            x = next(loader)
+            real = next(loader)
         except StopIteration:
             loader = iter(dataloader)
-            x = next(loader)
+            real = next(loader)
 
         netD.zero_grad()
         netG.zero_grad()
-        real = x
 
         noise = torch.randn(batch_size, 64, device=device)
         fake = netG(noise)
 
-        # Forward pass real batch through D
         r_recon = netD(real)
         f_recon = netD(fake.detach())
 
-        # Calculate loss on all-real batch
         err_real = criterion(r_recon, real)
         err_fake = criterion(f_recon, fake.detach())
 
@@ -77,17 +75,20 @@ def train(
                 "measure": measure,
             }
         )
-        optimizerD = adjust_learning_rate(
-            optimizerD, init_lr, lr_decay_iter, step
-        )
-        optimizerG = adjust_learning_rate(
-            optimizerG, init_lr, lr_decay_iter, step
-        )
-        if step % save_step == 0 and step != 0:
+        schedD.step()
+        schedG.step()
+        if (step + 1) % save_step == 0 and step != 0:
             torch.save(
-                netG.state_dict(),
-                f"{outfolder}/netG_{step}.pth",
+                {
+                    "epoch": step,
+                    "generator_state_dict": netG.state_dict(),
+                    "optimizerG_state_dict": optimizerG.state_dict(),
+                    "loss_generator": errG,
+                    "discriminator_state_dict": netD.state_dict(),
+                    "optimizerD_state_dict": optimizerD.state_dict(),
+                    "loss_discriminator": errD,
+                },
+                f"{outfolder}/BEGAN_{step}.pth",
             )
-            torch.save(netD.state_dict(), f"{outfolder}/netG_{step}.pth")
 
     return netD, netG

@@ -2,93 +2,111 @@ import wandb
 import random
 import torch
 from began.dataset import CelebA
-from began.models import Discriminator, Decoder
+from began.models.standard import Discriminator, Decoder
+from began.models.skip import SkipDiscriminator, SkipDecoder
 from began.train import train
 import torch.optim as optim
 
-
-# # start a new wandb run to track this script
-wandb.init(
-    # set the wandb project where this run will be logged
-    project="began",
-    # track hyperparameters and run metadata
-    config=dict(
-        manual_seed=84,
-        data_path="data/32_32_crop/",
-        img_size=32,
-        workers_dl=2,
-        batch_size=64,
-        learning_rate=0.0001,
-        device="cpu",
-        beta1=0.5,
-        gamma=0.5,
-        lambda_k=0.001,
-        niter=30000,
-    ),
-)
-
-# opt = wandb.config
-
-manual_seed = 84
-data_path = "data/32_32_crop/"
-img_size = 32
-workers_dl = 2
-batch_size = 64
-lr = 0.0001
-beta1 = 0.5
-gamma = 0.5
-lambda_k = 0.001
-niter = 30000
-device = (
-    "cpu"  # torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
-)
-print("Random Seed: ", manual_seed)
-random.seed(manual_seed)
-torch.manual_seed(manual_seed)
-
-# if cuda:
-#     torch.cuda.manual_seed_all(manual_seed)
+# import argparse
 
 
-dataset = CelebA(data_path, img_size)
-dataloader = torch.utils.data.DataLoader(
-    dataset,
-    batch_size=batch_size,
-    shuffle=True,
-    num_workers=workers_dl,
-)
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser(description="BEGAN network")
 
 
-criterion = torch.nn.L1Loss()
-netD = Discriminator()
-netG = Decoder()
+def main():
+    wandb.init(
+        # set the wandb project where this run will be logged
+        project="began",
+        # track hyperparameters and run metadata
+        # config=dict(
+        #     # settings
+        #     device="cpu",  #
+        #     manual_seed=84,  #
+        #     save_step=10000,  #
+        #     # data
+        #     data_path="data/32_32_crop/",  #
+        #     img_size=32,  #
+        #     workers_dl=2,  #
+        #     batch_size=64,  #
+        #     # optimizers
+        #     lr=0.0001,  #
+        #     beta1=0.5,  #
+        #     lr_step=1000,  #
+        #     lr_gamma=0.5,  #
+        #     # network
+        #     gamma=0.5,  #
+        #     lambda_k=0.001,  #
+        #     skip=True,  #
+        #     n_filters=32,
+        #     # training
+        #     max_iter=100,  #
+        # ),
+    )
+    conf = wandb.config
+    print(conf)
 
-wandb.watch(netG)
-wandb.watch(netD)
+    print("Random Seed: ", conf["manual_seed"])
+    random.seed(conf["manual_seed"])
+    torch.manual_seed(conf["manual_seed"])
 
-optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
-optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
+    if conf["device"] != "cpu":
+        torch.cuda.manual_seed_all(conf["manual_seed"])
 
-train(
-    max_iter=niter,
-    dataloader=dataloader,
-    netD=netD,
-    optimizerD=optimizerD,
-    optimizerG=optimizerG,
-    netG=netG,
-    batch_size=batch_size,
-    device=device,
-    criterion=criterion,
-    gamma=gamma,
-    lambda_k=lambda_k,
-    logger=wandb.log,
-    init_lr=lr,
-    lr_decay_iter=3000,
-    save_step=10000,
-)
+    dataset = CelebA(conf["data_path"], conf["img_size"], load_all=True)
+    dataloader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=conf["batch_size"],
+        shuffle=True,
+        num_workers=conf["workers_dl"],
+    )
+
+    criterion = torch.nn.L1Loss()
+    netD = (
+        Discriminator(n_filters=conf["n_filters"])
+        if conf["skip"] == "false"
+        else SkipDiscriminator(n_filters=conf["n_filters"])
+    )
+    netG = (
+        Decoder(n_filters=conf["n_filters"])
+        if conf["skip"] == "false"
+        else SkipDecoder(n_filters=conf["n_filters"])
+    )
+
+    print(netD)
+
+    wandb.watch(netG)
+    wandb.watch(netD)
+
+    optimizerD = optim.Adam(
+        netD.parameters(), lr=conf["lr"], betas=(conf["beta1"], 0.999)
+    )
+    optimizerG = optim.Adam(
+        netG.parameters(), lr=conf["lr"], betas=(conf["beta1"], 0.999)
+    )
+
+    train(
+        # settings
+        device=conf["device"],
+        max_iter=conf["max_iter"],
+        logger=wandb.log,
+        # data
+        dataloader=dataloader,
+        batch_size=conf["batch_size"],
+        # network
+        netD=netD,
+        netG=netG,
+        optimizerD=optimizerD,
+        optimizerG=optimizerG,
+        criterion=criterion,
+        gamma=conf["gamma"],
+        lambda_k=conf["lambda_k"],
+        lr_step=conf["lr_step"],
+        lr_gamma=conf["lr_gamma"],
+        save_step=conf["save_step"],
+        outfolder=f"models/{'_'.join(str(k) + '_' + str(v) for k,v in conf.items() if k != 'data_path')}",
+    )
 
 
-torch.save(netD.state_dict(), f"disc_dict_{manual_seed}")
-torch.save(netD, f"disc_{manual_seed}")
-torch.save(netG.state_dict(), f"gen_dict_{manual_seed}")
-torch.save(netG, f"gen_{manual_seed}")
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,5 @@
 import torch.nn as nn
-from began.utils import (
+from began.models.utils import (
     conv_block,
     conv_block_upsampling,
     conv_block_downsampling,
