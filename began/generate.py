@@ -6,7 +6,7 @@ import torchvision.transforms as transforms
 import os
 
 
-base_model_path = "models/device_cpu_manual_seed_84_save_step_2000_img_size_32_workers_dl_10_batch_size_64_lr_0.0001_beta1_0.5_lr_step_5000_lr_gamma_0.95_gamma_0.5_lambda_k_0.001_skip_True_n_filters_64_max_iter_20000"
+base_model_path = "models/device_cuda_manual_seed_84_save_step_2000_img_size_32_workers_dl_10_batch_size_64_lr_0.0001_beta1_0.5_lr_step_5000_lr_gamma_0.95_gamma_0.5_lambda_k_0.001_skip_True_n_filters_64_max_iter_20000"
 
 
 def generate_photo(

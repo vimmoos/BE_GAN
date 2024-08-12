@@ -21,7 +21,7 @@ def main():
         # track hyperparameters and run metadata
         config=dict(
             # settings
-            device="cpu",  #
+            device="cuda",  #
             manual_seed=84,  #
             save_step=2000,  #
             # data

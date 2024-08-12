@@ -29,6 +29,8 @@ def train(
     netG.train()
     schedG = torch.optim.lr_scheduler.StepLR(optimizerG, lr_step, lr_gamma)
     schedD = torch.optim.lr_scheduler.StepLR(optimizerD, lr_step, lr_gamma)
+    netD.to(device)
+    netG.to(device)
 
     if not os.path.exists(outfolder):
         os.makedirs(outfolder)
@@ -39,6 +41,7 @@ def train(
             loader = iter(dataloader)
             real = next(loader)
 
+        real = real.to(device)
         netD.zero_grad()
         netG.zero_grad()
 
