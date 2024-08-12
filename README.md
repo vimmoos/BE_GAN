@@ -27,7 +27,7 @@ BEGAN is a generative adversarial network (GAN) that aims to solve the mode coll
 **1. Clone the Repository**
 
 ```bash
-git clone https://github.com/vimmoos/began_dl.git
+git clone https://github.com/vimmoos/BE_GAN.git
 ```
 
 **2. Install Dependencies**
